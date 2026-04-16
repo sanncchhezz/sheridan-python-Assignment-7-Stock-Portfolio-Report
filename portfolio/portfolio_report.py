@@ -16,9 +16,21 @@ def main():
 
 def read_portfolio(filename):
     """
-    Returns data from a CSV file
+    Reads a CSV portfolio file and returns its rows as an ordered list of dicts.
+
+    Each row in the CSV becomes an OrderedDict whose keys are the column headers
+    (symbol, units, cost) and whose values are strings, preserving the original
+    column order defined in the file header.
+
+    Args:
+        filename: Path (str or pathlib.Path) to the input CSV file.
+
+    Returns:
+        A list of OrderedDict objects, one per data row in the CSV.
     """
-   
+    with open(filename, newline='') as file:
+        reader = csv.DictReader(file)
+        return [OrderedDict(row) for row in reader]
 
 
 def get_args(args=None):
