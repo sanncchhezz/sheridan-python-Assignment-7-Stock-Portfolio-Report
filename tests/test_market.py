@@ -35,3 +35,21 @@ def test_get_market_data(requests_mock):
     }, 'Expecting a dict keyed by symbol with the full market data entry for each stock.'
 
 
+def test_get_market_data_missing_symbol(requests_mock):
+    """
+    Given that the IEX API omits a requested symbol from its response
+    (which happens when the symbol is invalid or not traded), assert that
+    get_market_data returns data only for the symbols that were found and
+    prints a warning for the missing one, without raising an error.
+    """
+    fake_response = [
+        {'symbol': 'AAPL', 'price': 186.84, 'size': 100, 'time': 1234567890},
+    ]
+    requests_mock.get(IEX_BASE_URL, json=fake_response)
+
+    result = portfolio_report.get_market_data(['AAPL', 'INVALID'])
+
+    assert 'AAPL' in result, 'Expecting AAPL to be present in the result.'
+    assert 'INVALID' not in result, 'Expecting missing symbol to be absent from the result.'
+
+
