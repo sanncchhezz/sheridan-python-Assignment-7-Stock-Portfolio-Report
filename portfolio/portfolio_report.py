@@ -56,9 +56,23 @@ def calculate_metrics(input_file, market_data):
 
 def save_portfolio(output_data, filename):
     """
-    Saves data to a CSV file
+    Writes a list of dicts to a CSV file with CRLF line endings.
+
+    The column headers are derived from the keys of the first dict in
+    output_data, so the column order matches the order of those keys.
+    Opening the file with newline='' prevents Python from adding an extra
+    carriage return on top of the one the csv module already writes,
+    ensuring correct CRLF (\\r\\n) line endings on all platforms.
+
+    Args:
+        output_data: List of dicts where each dict represents one CSV row.
+        filename: Path (str or pathlib.Path) to the output CSV file.
     """
-    
+    fieldnames = output_data[0].keys()
+    with open(filename, 'w', newline='') as file:
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(output_data)
 
 
 if __name__ == '__main__':
