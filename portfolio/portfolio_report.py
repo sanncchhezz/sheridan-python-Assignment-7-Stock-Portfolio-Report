@@ -35,9 +35,25 @@ def read_portfolio(filename):
 
 def get_args(args=None):
     """
-    Parse and return command line argument values
+    Parses and returns command-line arguments for the portfolio report tool.
+
+    Defines two required flags:
+      --source  Path to the input CSV file containing the portfolio data.
+      --target  Path to the output CSV file where the report will be saved.
+
+    The optional args parameter allows a list of strings to be passed directly
+    (e.g. in tests), instead of reading from sys.argv at runtime.
+
+    Args:
+        args: List of argument strings, or None to read from sys.argv.
+
+    Returns:
+        An argparse.Namespace object with attributes: source, target.
     """
-    
+    parser = argparse.ArgumentParser(description='Generate a stock portfolio performance report.')
+    parser.add_argument('--source', required=True, help='Path to the input portfolio CSV file.')
+    parser.add_argument('--target', required=True, help='Path to the output report CSV file.')
+    return parser.parse_args(args)
 
 
 def get_market_data(stocks_list):

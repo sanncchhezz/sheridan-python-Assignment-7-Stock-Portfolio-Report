@@ -51,3 +51,19 @@ def test_save_portfolio(portfolio_csv):
         assert result == expected, (
             f'Expecting the file to contain: \n{result}'
         )
+
+
+def test_get_args():
+    """
+    Given that get_args is called with --source and --target flags,
+    assert that the parsed values are correctly assigned to the
+    corresponding attributes on the returned Namespace object.
+    """
+    args = portfolio_report.get_args(['--source', 'portfolio.csv', '--target', 'report.csv'])
+
+    assert args.source == 'portfolio.csv', (
+        'Expecting args.source to equal the value passed to --source.'
+    )
+    assert args.target == 'report.csv', (
+        'Expecting args.target to equal the value passed to --target.'
+    )
