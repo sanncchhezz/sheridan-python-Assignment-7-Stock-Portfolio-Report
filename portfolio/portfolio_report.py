@@ -10,9 +10,21 @@ import requests
 
 def main():
     """
-    Entrypoint into program.
+    Entrypoint into the portfolio report program.
+
+    Orchestrates the full pipeline in four steps:
+      1. Parse --source and --target file paths from the command line.
+      2. Read the portfolio CSV from --source into a list of dicts.
+      3. Fetch current market data from the IEX API for all symbols.
+      4. Calculate performance metrics for each stock.
+      5. Save the enriched report to the --target CSV file.
     """
-  
+    args = get_args()
+    portfolio = read_portfolio(args.source)
+    symbols = [row['symbol'] for row in portfolio]
+    market_data = get_market_data(symbols)
+    report = calculate_metrics(portfolio, market_data)
+    save_portfolio(report, args.target)
 
 
 def read_portfolio(filename):

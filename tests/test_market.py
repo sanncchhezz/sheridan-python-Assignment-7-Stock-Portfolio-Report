@@ -109,3 +109,38 @@ def test_calculate_metrics():
     assert row['change'] == 0.50,         'change = 500.00 / 1000.00'
 
 
+def test_main(tmp_path, requests_mock, monkeypatch):
+    """
+    Integration test for main(). Verifies the full pipeline end-to-end:
+    reads a source CSV, fetches mocked market data, calculates metrics,
+    and writes the result to a target CSV.
+
+    tmp_path    - built-in pytest fixture that provides a temporary directory
+                  for creating input/output files that are cleaned up after the test.
+    requests_mock - intercepts the IEX API HTTP call and returns fake data.
+    monkeypatch - built-in pytest fixture used here to override sys.argv so
+                  get_args() receives the correct --source and --target values
+                  without needing to run from the command line.
+    """
+    source = tmp_path / 'portfolio.csv'
+    target = tmp_path / 'report.csv'
+
+    source.write_text('symbol,units,cost\r\nAAPL,10,100.00\r\n')
+
+    fake_response = [
+        {'symbol': 'AAPL', 'price': 150.00, 'size': 100, 'time': 1234567890},
+    ]
+    requests_mock.get(IEX_BASE_URL, json=fake_response)
+
+    monkeypatch.setattr('sys.argv', ['portfolio_report', '--source', str(source), '--target', str(target)])
+
+    portfolio_report.main()
+
+    assert target.exists(), 'Expecting the report CSV to be created by main().'
+
+    with open(target, 'r', newline='') as f:
+        content = f.read()
+    assert 'symbol' in content, 'Expecting the report CSV to contain a header row.'
+    assert 'AAPL' in content, 'Expecting the report CSV to contain the AAPL row.'
+
+
