@@ -92,9 +92,49 @@ def get_market_data(stocks_list):
 
 def calculate_metrics(input_file, market_data):
     """
-    Calculates the various metrics of each of the stocks
+    Calculates performance metrics for each stock in the portfolio.
+
+    For each row in input_file, looks up the stock's current price in
+    market_data and computes the following fields:
+      latest_price  - current market price from the API
+      book_value    - units x cost (total amount originally paid)
+      market_value  - units x latest_price (current total value)
+      gain_loss     - market_value - book_value (profit or loss)
+      change        - gain_loss / book_value (return as a decimal ratio)
+
+    Stocks whose symbol is absent from market_data are skipped silently
+    (get_market_data already printed a warning for those).
+
+    Args:
+        input_file:  List of dicts with keys symbol, units, cost (strings).
+        market_data: Dict keyed by symbol from get_market_data().
+
+    Returns:
+        A list of dicts each containing all 8 output columns.
     """
-    
+    results = []
+    for row in input_file:
+        symbol = row['symbol']
+        if symbol not in market_data:
+            continue
+        units = float(row['units'])
+        cost = float(row['cost'])
+        latest_price = market_data[symbol]['price']
+        book_value = units * cost
+        market_value = units * latest_price
+        gain_loss = market_value - book_value
+        change = gain_loss / book_value
+        results.append({
+            'symbol': symbol,
+            'units': row['units'],
+            'cost': row['cost'],
+            'latest_price': latest_price,
+            'book_value': book_value,
+            'market_value': market_value,
+            'gain_loss': gain_loss,
+            'change': change,
+        })
+    return results
 
 
 def save_portfolio(output_data, filename):

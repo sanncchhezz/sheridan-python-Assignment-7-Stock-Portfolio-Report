@@ -76,3 +76,36 @@ def test_get_market_data_missing_symbol_warning(requests_mock, capsys):
     )
 
 
+def test_calculate_metrics():
+    """
+    Given a portfolio row and its matching market data entry, assert that
+    calculate_metrics correctly computes book_value, market_value, gain_loss,
+    and change, and returns a list of dicts containing all 8 output columns.
+
+    book_value  = units x cost
+    market_value = units x latest_price
+    gain_loss   = market_value - book_value
+    change      = gain_loss / book_value
+    """
+    portfolio = [
+        {'symbol': 'AAPL', 'units': '10', 'cost': '100.00'},
+    ]
+    market_data = {
+        'AAPL': {'symbol': 'AAPL', 'price': 150.00, 'size': 100, 'time': 1234567890},
+    }
+
+    result = portfolio_report.calculate_metrics(portfolio, market_data)
+
+    assert len(result) == 1, 'Expecting one row in the result.'
+
+    row = result[0]
+    assert row['symbol'] == 'AAPL'
+    assert row['units'] == '10'
+    assert row['cost'] == '100.00'
+    assert row['latest_price'] == 150.00
+    assert row['book_value'] == 1000.00,  'book_value = 10 x 100.00'
+    assert row['market_value'] == 1500.00, 'market_value = 10 x 150.00'
+    assert row['gain_loss'] == 500.00,    'gain_loss = 1500.00 - 1000.00'
+    assert row['change'] == 0.50,         'change = 500.00 / 1000.00'
+
+
