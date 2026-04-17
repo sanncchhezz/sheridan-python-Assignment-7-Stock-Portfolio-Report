@@ -3,6 +3,7 @@ Generates performance reports for your stock portfolio.
 """
 import argparse
 import csv
+import os
 from collections import OrderedDict
 import requests
 
@@ -56,11 +57,31 @@ def get_args(args=None):
     return parser.parse_args(args)
 
 
+IEX_BASE_URL = 'https://cloud.iexapis.com/stable/tops'
+
+
 def get_market_data(stocks_list):
     """
-    Get the latest market data for the given stock symbols
+    Fetches the latest market quote data for a list of stock symbols
+    from the IEX Cloud API and returns it as a dict keyed by symbol.
+
+    Sends a single batch request to the IEX /tops endpoint with all
+    symbols joined by commas. The API token is read from the IEX_TOKEN
+    environment variable. Symbols not present in the API response (e.g.
+    invalid tickers) are simply absent from the returned dict — no error
+    is raised.
+
+    Args:
+        stocks_list: List of stock symbol strings (e.g. ['AAPL', 'AMZN']).
+
+    Returns:
+        A dict mapping each symbol string to its full market data dict,
+        e.g. {'AAPL': {'symbol': 'AAPL', 'price': 186.84, ...}, ...}.
     """
-    
+    token = os.environ.get('IEX_TOKEN', '')
+    symbols = ','.join(stocks_list)
+    response = requests.get(IEX_BASE_URL, params={'token': token, 'symbols': symbols})
+    return {item['symbol']: item for item in response.json()}
 
 
 def calculate_metrics(input_file, market_data):
