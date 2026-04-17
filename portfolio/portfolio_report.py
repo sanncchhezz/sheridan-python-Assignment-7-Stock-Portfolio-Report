@@ -81,7 +81,13 @@ def get_market_data(stocks_list):
     token = os.environ.get('IEX_TOKEN', '')
     symbols = ','.join(stocks_list)
     response = requests.get(IEX_BASE_URL, params={'token': token, 'symbols': symbols})
-    return {item['symbol']: item for item in response.json()}
+    market_data = {item['symbol']: item for item in response.json()}
+
+    for symbol in stocks_list:
+        if symbol not in market_data:
+            print(f'Warning: symbol "{symbol}" was not found in market data and will be skipped.')
+
+    return market_data
 
 
 def calculate_metrics(input_file, market_data):

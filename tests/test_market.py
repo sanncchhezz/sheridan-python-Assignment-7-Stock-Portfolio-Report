@@ -53,3 +53,26 @@ def test_get_market_data_missing_symbol(requests_mock):
     assert 'INVALID' not in result, 'Expecting missing symbol to be absent from the result.'
 
 
+def test_get_market_data_missing_symbol_warning(requests_mock, capsys):
+    """
+    Given that the IEX API omits a requested symbol from its response,
+    assert that get_market_data prints a warning message to stdout that
+    includes the name of the missing symbol.
+
+    capsys is a built-in pytest fixture that captures text written to
+    stdout and stderr during the test, allowing us to assert on printed
+    output without needing to change the function's return value.
+    """
+    fake_response = [
+        {'symbol': 'AAPL', 'price': 186.84, 'size': 100, 'time': 1234567890},
+    ]
+    requests_mock.get(IEX_BASE_URL, json=fake_response)
+
+    portfolio_report.get_market_data(['AAPL', 'INVALID'])
+
+    captured = capsys.readouterr()
+    assert 'INVALID' in captured.out, (
+        'Expecting a warning printed to stdout containing the missing symbol name.'
+    )
+
+
